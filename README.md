@@ -24,54 +24,76 @@ Eine Webanwendung zur Verwaltung und Organisation von Feuerwehraktivitäten.
    ```bash
    git clone https://github.com/MedizinPumPer/feuerwehr-webapp.git
    cd feuerwehr-webapp
-
+   ```
 
 2. **Virtuelle Umgebung erstellen und aktivieren:**
 
-      ```bash
-    python -m venv venv
-    source venv/bin/activate  # Für Unix oder MacOS
-    venv\Scripts\activate     # Für Windows
+   **Unter Linux / macOS:**
+
+   ```bash
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
+
+   **Unter Windows:**
+
+   ```bash
+   python -m venv venv
+   venv\Scripts\activate
+   ```
 
 3. **Abhängigkeiten installieren:**
 
    ```bash
    pip install -r requirements.txt
-
+   ```
 
 4. **Konfigurationsdatei erstellen:**
 
-Erstellen Sie eine config.json-Datei basierend auf der bereitgestellten config_SAMPLE.json.
+   Erstellen Sie eine `config.json`-Datei basierend auf der Vorlage `config_SAMPLE.json`.
+
+   **Linux/macOS:**
 
    ```bash
-    cp config_SAMPLE.json config.json  # Linux/Mac
-    copy config_SAMPLE.json config.json  # Windows
+   cp config_SAMPLE.json config.json
+   ```
 
-Passen Sie die config.json entsprechend Ihrer Umgebung an.
+   **Windows (CMD):**
 
+   ```cmd
+   copy config_SAMPLE.json config.json
+   ```
+
+   Bearbeiten Sie `config.json`, um sie an Ihre Umgebung anzupassen.
 
 5. **Anwendung starten:**
 
    ```bash
-    python app.py
+   python app.py
+   ```
 
+   Die Anwendung ist anschließend erreichbar unter:
+
+   ```
+   http://127.0.0.1:5000
+   ```
 
 ## 🗂️ Projektstruktur
 
-    ```bash
-    feuerwehr-webapp/
-    ├── app.py
-    ├── app.wsgi
-    ├── config_SAMPLE.json
-    ├── requirements.txt
-    ├── modules/
-    ├── static/
-    └── templates/
+```plaintext
+feuerwehr-webapp/
+├── app.py
+├── app.wsgi
+├── config_SAMPLE.json
+├── requirements.txt
+├── modules/
+├── static/
+└── templates/
+```
 
 ## 📄 Lizenz
 
-Dieses Projekt steht unter der MIT-Lizenz. Weitere Informationen finden Sie in der LICENSE-Datei.
-
+Dieses Projekt steht unter der MIT-Lizenz. Weitere Informationen finden Sie in der [LICENSE](LICENSE)-Datei.
 
 ## 🤝 Beitrag leisten
 
