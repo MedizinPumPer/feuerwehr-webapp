@@ -4,10 +4,9 @@ Eine Webanwendung zur Verwaltung und Organisation von Feuerwehraktivitäten.
 
 ## 🔧 Funktionen
 
-- Verwaltung von Einsatzberichten
-- Benutzerverwaltung
-- Statistische Auswertungen
-- Responsive Benutzeroberfläche
+- Erstellung von Einsatzberichten für Social Media
+- Responsive Benutzeroberfläche (Direkt von der Einsatzstelle passende Berichte generieren!)
+- ChatGPT anbindung möglich!
 
 ## 📦 Installation
 
