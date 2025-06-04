@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ergebnis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+    <div class="header-container">
+        <img class="logo" src="../static/feuerwehr-webapp-logo.png">
+        <div class="text-container">
+            <h1>{{ object }} Buchung Webapp</h1>
+            <h2>Gemeindefeuerwehr Dörverden</h2>
+        </div>
+    </div>
+    {% if error_message %}
+        <div class="container">
+        <p>{{ error_message }}</p>
+        <button onclick="window.location.href='/'">Zurück</button>
+        </div>
+    {% else %}
+        <h1>Ergebnis</h1>
+        <div class="container">
+            <p>{{ object }} wurde erfolgreich gebucht!</p>
+            <div>Buchender: {{ booker }}</div>
+            <div>Startzeit: {{ start }}</div>
+            <div>Ende: {{ end }}</div>
+            <button onclick="window.location.href='/'">Startseite</button>
+            {% if object == 'Drohne' %}
+            <button onclick="window.location.href='/drohnenbuchung'">Drohne Buchen</button>
+            {% else %}
+            <button onclick="window.location.href='/raumbuchung'">Raum Buchen</button>
+            {% endif %}
+        </div>
+    {% endif %}
+    <div class="footer">
+        <div class="coppyright">{{footer_text}}</div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Image Upload with Live Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            text-align: center;
+        }
+        .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        canvas {
+            border: 1px solid black;
+            margin: 10px;
+        }
+        #imageInput {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Multi-Image Upload with Live Preview</h1>
+        <form id="imageForm">
+            <input type="file" id="imageInput" accept="image/*" multiple>
+            <input type="text" id="overlayText" placeholder="Enter text to overlay">
+        </form>
+        <div class="image-container" id="imageContainer"></div>
+    </div>
+
+    <script>
+        const imageContainer = document.getElementById('imageContainer');
+        const overlayInput = document.getElementById('overlayText');
+
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            imageContainer.innerHTML = ''; // Clear previous images
+            const files = e.target.files;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const image = new Image();
+                    image.src = event.target.result;
+                    image.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = image.width;
+                        canvas.height = image.height;
+                        ctx.drawImage(image, 0, 0);
+                        
+                        // Draw text overlay
+                        overlayInput.addEventListener('input', function() {
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(image, 0, 0);
+                            ctx.font = '40px Arial';
+                            ctx.fillStyle = 'red';
+                            ctx.fillText(overlayInput.value, 50, 50);
+                        });
+
+                        imageContainer.appendChild(canvas);
+                    };
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
+</body>
+</html>

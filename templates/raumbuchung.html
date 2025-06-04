@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raumbuchungssystem</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const isAuthenticated = {{ is_authenticated | tojson }};
+            if (!isAuthenticated) {
+                $('#passwordModal').modal('show');
+            }
+
+            document.getElementById('passwordForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                var password = document.getElementById('passwordInput').value;
+                fetch("/password_check", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        password: password,
+                        page: "raumbuchung"
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        $('#passwordModal').modal('hide');
+                        window.location.reload();
+                    } else {
+                        alert("Falsches Passwort!");
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="header-container">
+        <img class="logo" src="../static/feuerwehr-webapp-logo.png">
+        <div class="text-container">
+            <h1>Raum Buchung Webapp</h1>
+            <h2>Gemeindefeuerwehr Dörverden</h2>
+        </div>
+    </div>    
+    <div class="context-container">
+        //TODO: Setze hier den Kalender link!
+        <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=2&ctz=Europe%2FBerlin&bgcolor=%23ffffff&showTitle=0&showPrint=0&showTabs=0&showCalendars=0&showTz=0&mode=MONTH&src=xxx&color=%239E69AF" style="border-width:0" width="100%" height="600" frameborder="0" scrolling="no"></iframe>
+        <form action="{{ url_for('raumbuchung') }}" method="post">
+            <label for="booker">Buchungstext: </label>
+            <input type="text" id="booker" name="booker" required><br><br>
+            <label for="start">Startzeit:</label>
+            <input type="datetime-local" id="start" name="start" required><br><br>
+            <label for="end">Endzeit:</label>
+            <input type="datetime-local" id="end" name="end" required><br><br>
+            <button type="submit">Buchen</button>
+        </form>  
+    </div>
+    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="passwordModalLabel">Passwort erforderlich</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="passwordForm">
+                        <div class="form-group">
+                            <label for="passwordInput">Passwort</label>
+                            <input type="password" class="form-control" id="passwordInput" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Einloggen</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        <div class="coppyright">{{ footer_text }}</div>
+    </div>
+</body>
+</html>

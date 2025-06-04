@@ -1,0 +1,23 @@
+{
+    "OPENAI_API_KEY": "xxx",
+    "FAHRZEUGE": [
+        "🚒 ELW1",
+        "🚒 LF20/16",
+        "🚒 GW-L2",
+        "🚒 MTF"
+    ],
+    "WEITERE_KRAEFTE": [
+        "🛰️ Drohnengruppe",
+        "👨🏼‍🚒 Kreisbrandmeister",
+        "🚑 Rettungsdienst",
+        "🚁 Rettungshubschrauber",
+        "⚰️ Bestatter",
+        "🔌 Stromversorger",
+        "🦺 Gasversorger",
+        "🚧 Kreisstraßenmeisterei",
+        "💧 Untere Wasserbehörde"
+    ],
+    "ROOM_CALENDAR": "xxx@group.calendar.google.com",
+    "DROHNE_CALENDAR": "xxx@group.calendar.google.com",
+    "FOOTER_TEXT": "Feuerwehr Webapp © by Bastian Steinert"
+}

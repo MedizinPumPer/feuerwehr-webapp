@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einsatz Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="header-container">
+        <img class="logo" src="../static/feuerwehr-webapp-logo.png">
+        <div class="text-container">
+            <h1>Einsatz Generator</h1>
+            <h2>Gemeindefeuerwehr Dörverden</h2>
+        </div>
+    </div>
+    <form class="socialmediaform" id="form" action="/social_media" method="POST" enctype="multipart/form-data">
+        <label for="einsatznummer">Einsatznunmmer:</label>
+        <input type="text" name="einsatznummer" required placeholder="XX/2024"><br>       
+        <label for="einsatzstichwort">Einsatzstichwort:</label>
+        <input type="text" name="einsatzstichwort" required placeholder="bsp. FWALD1"><br>
+        <label for="einsatzmeldung">Einsatzmeldung:</label>
+        <input type="text" name="einsatzmeldung" placeholder="bsp. WALDBRAND" required><br>
+        <label for="uhrzeit">Uhrzeit:</label>
+        <input type="time" name="uhrzeit" required><br>
+        <label for="datum">Datum:</label>
+        <input type="date" name="datum" required><br>
+        <label for="ort">Ort:</label>
+        <input type="text" name="ort" placeholder="bsp. Barme/Dörverden" required><br>
+        <label for="einsatzbericht">Einsatzbericht:</label>
+        <textarea name="einsatzbericht" placeholder="bsp. Waldbrand von 70qm, schnelles eingreifen weitere ausbreitung verhindert, schnelle kontrolle, keine verletzten" required></textarea><br>
+        <label>Text Mit ChatGPT erstellen?: <input type="checkbox" name="usegpt" checked="checked"></label><br>
+        <label for="fahrzeuge">Fahrzeuge:</label>
+        <select name="fahrzeuge" multiple>
+            {% for fahrzeug in fahrzeuge_list %}
+                <option value="{{ fahrzeug }}">{{ fahrzeug }}</option>
+            {% endfor %}
+        </select><br>
+        <label for="weitere_kraefte">Weitere Kräfte:</label>
+        <select name="weitere_kraefte" multiple>
+            {% for kraft in weitere_kraefte_list %}
+                <option value="{{ kraft }}">{{ kraft }}</option>
+            {% endfor %}
+        </select><br>
+        <label for="file">Bild hochladen:</label>
+        <input type="file" id="file" name="file"><br>
+        
+        <label for="predefined_image">Oder vordefiniertes Bild auswählen:</label>
+        <select id="predefined_image" name="predefined_image">
+            <option value="">-- Bitte auswählen --</option>
+            {% for image in predefined_images %}
+                <option value="{{ url_for('static', filename='predefined/' + image) }}">{{ image }}</option>
+            {% endfor %}
+        </select><br>
+        <label>Einsatzbanner auf Bild? <input type="checkbox" name="imagealarmbanner" id="imagealarmbanner"></label>
+        <label>Wasserzeichen? <input type="checkbox" id="imagewatermark" checked="checked"></label>
+        
+        <div id="canvas-container">
+            <canvas id="canvas" width="1080" height="1080"></canvas>
+        </div>
+        
+        <div id="controls">
+            <button type="button" id="zoomIn">Zoom In</button>
+            <button type="button" id="zoomOut">Zoom Out</button>
+            <button type="button" id="move-left">←</button>
+            <button type="button" id="move-right">→</button>
+            <button type="button" id="move-up">↑</button>
+            <button type="button" id="move-down">↓</button>
+        </div>
+
+        <input type="hidden" id="image-data" name="image_data">
+        <input type="hidden" id="img-x" name="img_x">
+        <input type="hidden" id="img-y" name="img_y">
+        <input type="hidden" id="img-width" name="img_width">
+        <input type="hidden" id="img-height" name="img_height">
+        <button type="submit">Generieren</button>
+    </form>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let img = new Image();
+        let imgX = 0, imgY = 0;
+        let scale = 1.0;
+        let watermarkImg = new Image();
+        watermarkImg.src = "{{ url_for('static', filename='watermark.png') }}";  // Festes Wasserzeichen
+
+        // Bild hochladen
+        document.getElementById('file').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                img.src = event.target.result;
+                img.onload = function() {
+                    resizeAndDrawImage();
+                };
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        // Vordefiniertes Bild auswählen
+        document.getElementById('predefined_image').addEventListener('change', function(e) {
+            const selectedImage = e.target.value;
+            if (selectedImage) {
+                img.src = selectedImage;
+                img.onload = function() {
+                    resizeAndDrawImage();
+                };
+            }
+        });
+
+        // Alarmbanner Checkbox ändern
+        document.getElementById('imagealarmbanner').addEventListener('change', function() {
+            drawImage();
+        });
+
+        // Zoom und Bewegen der Bilder
+        document.getElementById('zoomIn').addEventListener('click', function() {
+            scale += 0.1;
+            drawImage();
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', function() {
+            scale = Math.max(0.1, scale - 0.1);
+            drawImage();
+        });
+
+        document.getElementById('move-left').addEventListener('click', function() {
+            imgX -= 10;
+            drawImage();
+        });
+
+        document.getElementById('move-right').addEventListener('click', function() {
+            imgX += 10;
+            drawImage();
+        });
+
+        document.getElementById('move-up').addEventListener('click', function() {
+            imgY -= 10;
+            drawImage();
+        });
+
+        document.getElementById('move-down').addEventListener('click', function() {
+            imgY += 10;
+            drawImage();
+        });
+
+        // Zeichnet das Bild auf das Canvas
+        function resizeAndDrawImage() {
+            const aspectRatio = img.width / img.height;
+            let newWidth, newHeight;
+
+            if (aspectRatio > 1) { // Querformat
+                newWidth = 1080;
+                newHeight = 1080 / aspectRatio;
+            } else { // Hochformat oder quadratisch
+                newHeight = 1080;
+                newWidth = 1080 * aspectRatio;
+            }
+
+            imgX = (canvas.width - newWidth) / 2;
+            imgY = (canvas.height - newHeight) / 2;
+
+            drawImage(newWidth, newHeight);
+        }
+
+        function drawImage(newWidth = img.width * scale, newHeight = img.height * scale) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, imgX, imgY, newWidth, newHeight);
+
+            // Zeichne das Wasserzeichen
+            if (watermarkImg.src) {
+                const watermarkWidth = 446;
+                const watermarkHeight = 101;
+                const watermarkX = canvas.width - watermarkWidth - 25;
+                const watermarkY = canvas.height - watermarkHeight - 25;
+
+                ctx.drawImage(watermarkImg, watermarkX, watermarkY, watermarkWidth, watermarkHeight);
+            }
+
+            // Zeichne den Alarmbanner, wenn die Checkbox aktiviert ist
+            if (document.getElementById('imagealarmbanner').checked) {
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+                ctx.fillRect(0, canvas.height - 60, canvas.width, 60);
+                ctx.fillStyle = 'white';
+                ctx.font = '30px Arial';
+                ctx.fillText('ALARM', 20, canvas.height - 20);
+            }
+
+            // Zeichne das Einsatzstichwort, wenn es eingegeben wurde
+            const einsatzstichwort = document.getElementById('einsatzstichwort').value;
+            if (einsatzstichwort) {
+                ctx.font = '40px Arial';
+                ctx.fillStyle = 'red';
+                ctx.fillText(einsatzstichwort, 50, 50);  // Zeichne den Text immer
+            }
+        }
+    </script>
+</body>
+</html>

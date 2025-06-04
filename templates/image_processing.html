@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Image Processing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid black;
+            margin-top: 20px;
+        }
+        #imageInput {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Live Image Processing with Preview</h1>
+        <form id="imageForm">
+            <input type="file" id="imageInput" accept="image/*">
+            <input type="text" id="overlayText" placeholder="Enter text to overlay">
+        </form>
+        <canvas id="imageCanvas"></canvas>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('imageCanvas');
+        const ctx = canvas.getContext('2d');
+        let image = new Image();
+        let scale = 1.0;
+        let offsetX = 0, offsetY = 0;
+
+        // Upload image and render it on the canvas
+        document.getElementById('imageInput').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                image.src = event.target.result;
+                image.onload = function() {
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    drawImage();
+                };
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        // Handle text overlay input
+        document.getElementById('overlayText').addEventListener('input', function() {
+            drawImage();
+        });
+
+        // Draw the image and overlay text
+        function drawImage() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, offsetX, offsetY, image.width * scale, image.height * scale);
+            
+            // Overlay text
+            const text = document.getElementById('overlayText').value;
+            if (text) {
+                ctx.font = '40px Arial';
+                ctx.fillStyle = 'red';
+                ctx.fillText(text, 50, 50);
+            }
+        }
+
+        // Handle zoom and pan (basic implementation)
+        canvas.addEventListener('wheel', function(event) {
+            if (event.deltaY < 0) {
+                scale += 0.1;
+            } else {
+                scale = Math.max(0.1, scale - 0.1);
+            }
+            drawImage();
+        });
+
+        canvas.addEventListener('mousedown', function(event) {
+            const startX = event.offsetX - offsetX;
+            const startY = event.offsetY - offsetY;
+            
+            function mouseMoveHandler(e) {
+                offsetX = e.offsetX - startX;
+                offsetY = e.offsetY - startY;
+                drawImage();
+            }
+
+            function mouseUpHandler() {
+                canvas.removeEventListener('mousemove', mouseMoveHandler);
+                canvas.removeEventListener('mouseup', mouseUpHandler);
+            }
+
+            canvas.addEventListener('mousemove', mouseMoveHandler);
+            canvas.addEventListener('mouseup', mouseUpHandler);
+        });
+    </script>
+</body>
+</html>

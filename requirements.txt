@@ -1,0 +1,13 @@
+Flask
+openai
+Pillow
+python-dotenv
+ttf_opensans
+ics
+google-api-python-client
+google-auth-httplib2 
+google-auth-oauthlib
+Flask-Session
+flask_sqlalchemy
+flask_admin
+pytz

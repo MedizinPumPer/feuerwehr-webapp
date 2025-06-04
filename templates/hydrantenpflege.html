@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Hydranten Daten Eingabe</title>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../static/style.css">
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </head>
+    <body>
+        <h1>Hydranten Daten Eingabe</h1>
+
+ <!-- Hydrant selection form -->
+ <form method="GET" action="/hydrantenpflege">
+    <label>Hydrant:</label>
+    <select name="hydrant_id" required onchange="this.form.submit()">
+        <option value="">-- Wählen Sie einen Hydranten --</option>
+        {% for hydrant in hydrants %}
+        <option value="{{ hydrant.id }}" {% if hydrant.id == selected_hydrant_id %} selected {% endif %}>
+            {{ hydrant.nummer }} - {{ hydrant.standortbeschreibung }}
+        </option>
+        {% endfor %}
+    </select>
+</form>
+
+<!-- Display previous data for selected hydrant -->
+{% if selected_hydrant_data %}
+<h2>Bisherige Daten für diesen Hydranten</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Datum</th>
+            <th>Bemerkung</th>
+            <th>Wert 1</th>
+            <th>Wert 2</th>
+            <th>Wert 3</th>
+            <th>Wert 4</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for data in selected_hydrant_data %}
+        <tr>
+            <td>{{ data.datum }}</td>
+            <td>{{ data.bemerkung }}</td>
+            <td>{{ data.wert_1 }}</td>
+            <td>{{ data.wert_2 }}</td>
+            <td>{{ data.wert_3 }}</td>
+            <td>{{ data.wert_4 }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+<!-- Form to add new data for selected hydrant -->
+<h2>Neue Daten hinzufügen</h2>
+<form method="POST" action="/hydrantenpflege?hydrant_id={{ selected_hydrant_id }}">
+    <input type="hidden" name="hydrant" value="{{ selected_hydrant_id }}" required>
+    
+    <label>Datum:</label>
+    <input type="date" name="datum" required><br>
+    <label>Bemerkung:</label>
+    <textarea name="bemerkung"></textarea><br>
+    <label>Wert 1:</label>
+    <input type="number" name="wert_1"><br>
+    <label>Wert 2:</label>
+    <input type="number" name="wert_2"><br>
+    <label>Wert 3:</label>
+    <input type="number" name="wert_3"><br>
+    <label>Wert 4:</label>
+    <input type="number" name="wert_4"><br>
+    <button type="submit">Daten speichern</button>
+</form>
+</body>
+</html>

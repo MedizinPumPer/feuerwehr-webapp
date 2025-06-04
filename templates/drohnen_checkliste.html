@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="de">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Ergebnis</title>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+        <link rel="stylesheet" href="../static/style.css">
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const isAuthenticated =  {{is_authenticated | tojson}};
+                if (!isAuthenticated) {
+                    $('#passwordModal').modal('show');
+                }
+    
+                document.getElementById('passwordForm').addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    var password = document.getElementById('passwordInput').value;
+                    fetch("/password_check", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            password: password,
+                            page: "drohnen_checkliste"
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            $('#passwordModal').modal('hide');
+                            window.location.reload();
+                        } else {
+                            alert("Falsches Passwort!");
+                        }
+                    });
+                });
+            });
+        </script>
+    </head>
+    <body>
+        <div class="header-container">
+            <img class="logo" src="../static/feuerwehr-webapp-logo.png">
+            <div class="text-container">
+                <h1>Übungsdrohne Checkliste</h1>
+                <h2>Gemeindefeuerwehr Dörverden</h2>
+            </div>
+        </div>
+        <div class="context-container mt-5">
+            <h1>Drohnen Checkliste - Flugbetrieb (Übungsdrohne)</h1>
+            <form action="{{ url_for('drohnen_checkliste') }}" method="POST">
+                <!-- Allgemein -->
+                <h3>Allgemein</h3>
+                <div class="form-group">
+                    <label for="ort">Ort</label>
+                    <input type="text" class="form-control" id="ort" name="ort" required>
+                </div>
+                <div class="form-group">
+                    <label for="datum">Datum</label>
+                    <input type="date" class="form-control" id="datum" name="datum" required>
+                </div>
+                <div class="form-group">
+                    <label for="unterschrift">Unterschrift</label>
+                    <input type="text" class="form-control" id="unterschrift" name="unterschrift" required>
+                </div>
+                <!-- Startvorbreitung -->
+                <h3>Startvorbereitung</h3>
+                <div class="form-group">
+                    <label for="startplatz_eingerichtet">Startplatz eingerichtet und abgesichert</label>
+                    <input type="checkbox" class="form-control" id="startplatz_eingerichtet" name="startplatz_eingerichtet">
+                </div>
+                <div class="form-group">
+                    <label for="fernsteuerung_einschalten">Fernsteuerung einschalten</label>
+                    <input type="checkbox" class="form-control" id="fernsteuerung_einschalten" name="fernsteuerung_einschalten">
+                </div>
+                <div class="form-group">
+                    <label for="bildschirm_schaltet_ein">Bildschirm schaltet automatisch ein</label>
+                    <input type="checkbox" class="form-control" id="bildschirm_schaltet_ein" name="bildschirm_schaltet_ein">
+                </div>
+                <div class="form-group">
+                    <label for="rotoren_ueberpruefen">Rotoren auf festen Sitz überprüfen</label>
+                    <input type="checkbox" class="form-control" id="rotoren_ueberpruefen" name="rotoren_ueberpruefen">
+                </div>
+                <div class="form-group">
+                    <label for="drohne_einschalten">Drohne einschalten</label>
+                    <input type="checkbox" class="form-control" id="drohne_einschalten" name="drohne_einschalten">
+                </div>
+                <div class="form-group">
+                    <label for="app_startet">App startet automatisch</label>
+                    <input type="checkbox" class="form-control" id="app_startet" name="app_startet">
+                </div>
+                <div class="form-group">
+                    <label for="kompass_kalibrieren">Kompass kalibrieren (wenn erforderlich)</label>
+                    <input type="checkbox" class="form-control" id="kompass_kalibrieren" name="kompass_kalibrieren">
+                </div>
+                <div class="form-group">
+                    <label for="keine_warnungen">Keine roten oder gelben Warnungen</label>
+                    <input type="checkbox" class="form-control" id="keine_warnungen" name="keine_warnungen">
+                </div>
+                <div class="form-group">
+                    <label for="gps_empfang">GPS-Empfang mindestens 9 Satelliten</label>
+                    <input type="checkbox" class="form-control" id="gps_empfang" name="gps_empfang">
+                </div>
+                <div class="form-group">
+                    <label for="verbindung_voller_ausschlag">Verbindung voller Ausschlag</label>
+                    <input type="checkbox" class="form-control" id="verbindung_voller_ausschlag" name="verbindung_voller_ausschlag">
+                </div>
+                <div class="form-group">
+                    <label for="akkuladezustand">Akkuladezustand Drohne i.O.</label>
+                    <input type="checkbox" class="form-control" id="akkuladezustand" name="akkuladezustand">
+                </div>
+                <div class="form-group">
+                    <label for="flugmodus_p">Flugmodus P eingestellt</label>
+                    <input type="checkbox" class="form-control" id="flugmodus_p" name="flugmodus_p">
+                </div>
+    
+                <!-- Abflug -->
+                <h3>Abflug</h3>
+                <div class="form-group">
+                    <label for="startplatz_fest">Startplatz fest und wage keine Gräser o.ä. im Rotorbereich</label>
+                    <input type="checkbox" class="form-control" id="startplatz_fest" name="startplatz_fest">
+                </div>
+                <div class="form-group">
+                    <label for="automatischen_start_einleiten">automatischen Start einleiten oder beide Sticks nach innen und nach unten bis die Motoren starten</label>
+                    <input type="checkbox" class="form-control" id="automatischen_start_einleiten" name="automatischen_start_einleiten">
+                </div>
+                <div class="form-group">
+                    <label for="aufsteigen">Aufsteigen auf 3-4m</label>
+                    <input type="checkbox" class="form-control" id="aufsteigen" name="aufsteigen">
+                </div>
+                <div class="form-group">
+                    <label for="keine_warnmeldungen">keine Warnmeldungen</label>
+                    <input type="checkbox" class="form-control" id="keine_warnmeldungen" name="keine_warnmeldungen">
+                </div>
+                <div class="form-group">
+                    <label for="homepoint_gesetzt">Homepoint gesetzt</label>
+                    <input type="checkbox" class="form-control" id="homepoint_gesetzt" name="homepoint_gesetzt">
+                </div>
+    
+                <!-- Funktionsprobe -->
+                <h3>Funktionsprobe</h3>
+                <div class="form-group">
+                    <label for="schwebeflug">Sicherer Schwebeflug</label>
+                    <input type="checkbox" class="form-control" id="schwebeflug" name="schwebeflug">
+                </div>
+                <div class="form-group">
+                    <label for="drehen_360">Drehen in beide Richtungen 360°</label>
+                    <input type="checkbox" class="form-control" id="drehen_360" name="drehen_360">
+                </div>
+                <div class="form-group">
+                    <label for="gieren">Gieren nach vorne hinten links rechts</label>
+                    <input type="checkbox" class="form-control" id="gieren" name="gieren">
+                </div>
+                <div class="form-group">
+                    <label for="sinkflug">Sink- und Steigflug</label>
+                    <input type="checkbox" class="form-control" id="sinkflug" name="sinkflug">
+                </div>
+    
+                <!-- Mission durchführen -->
+                <h3>Mission durchführen</h3>
+                <div class="form-group">
+                    <label for="akkustand_flugziel">Akkustand am Flugziel (das doppelte des bisherigen Verbrauchs für den Rückflug einkalkulieren)</label>
+                    <input type="checkbox" class="form-control" id="akkustand_flugziel" name="akkustand_flugziel">
+                </div>
+    
+                <!-- Vor der Landung -->
+                <h3>Vor der Landung</h3>
+                <div class="form-group">
+                    <label for="anflug_landezone_frei">Anflug auf die Landezone frei</label>
+                    <input type="checkbox" class="form-control" id="anflug_landezone_frei" name="anflug_landezone_frei">
+                </div>
+                <div class="form-group">
+                    <label for="landezone_frei">Landezone selbst frei</label>
+                    <input type="checkbox" class="form-control" id="landezone_frei" name="landezone_frei">
+                </div>
+                <div class="form-group">
+                    <label for="landezone_anfliegen">Landezone anfliegen</label>
+                    <input type="checkbox" class="form-control" id="landezone_anfliegen" name="landezone_anfliegen">
+                </div>
+                <div class="form-group">
+                    <label for="kamera_herunterschwenken">Kamera max. herunterschwenken (linkes Drehrad)</label>
+                    <input type="checkbox" class="form-control" id="kamera_herunterschwenken" name="kamera_herunterschwenken">
+                </div>
+                <div class="form-group">
+                    <label for="drohne_abwenden">Drohne auf Vorwärtsrichtung vom Piloten abgewandt drehen</label>
+                    <input type="checkbox" class="form-control" id="drohne_abwenden" name="drohne_abwenden">
+                </div>
+                <div class="form-group">
+                    <label for="sinken_landegeschwindigkeit">Sinken mit Schrittgeschwindigkeit (nicht mit Autoland)</label>
+                    <input type="checkbox" class="form-control" id="sinken_landegeschwindigkeit" name="sinken_landegeschwindigkeit">
+                </div>
+                <div class="form-group">
+                    <label for="motoren_abschalten">Motoren ausschalten</label>
+                    <input type="checkbox" class="form-control" id="motoren_abschalten" name="motoren_abschalten">
+                </div>
+                <button type="submit" class="btn btn-primary">Eintrag speichern</button>
+            </form>
+            <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true" data-keyboard="false" data-backdrop="static">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="passwordModalLabel">Passwort erforderlich</h5>
+                        </div>
+                        <div class="modal-body">
+                            <form id="passwordForm">
+                                <div class="form-group">
+                                    <label for="passwordInput">Passwort</label>
+                                    <input type="password" class="form-control" id="passwordInput" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Einloggen</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="footer">
+            <div class="coppyright">{{footer_text}}</div>
+        </div>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Einsatz Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/style.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const isAuthenticated =  {{is_authenticated | tojson}};
+            if (!isAuthenticated) {
+                $('#passwordModal').modal('show');
+            }
+
+            document.getElementById('passwordForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                var password = document.getElementById('passwordInput').value;
+                fetch("/password_check", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        password: password,
+                        page: "social_media"
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        $('#passwordModal').modal('hide');
+                        window.location.reload();
+                    } else {
+                        alert("Falsches Passwort!");
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="header-container">
+        <img class="logo" src="../static/feuerwehr-webapp-logo.png">
+        <div class="text-container">
+            <h1>Einsatz Generator</h1>
+            <h2>Gemeindefeuerwehr Dörverden</h2>
+        </div>
+    </div>
+    <form class="socialmediaform" id="form" action="/social_media" method="POST" enctype="multipart/form-data">
+        <label for="einsatznummer">Einsatznunmmer:</label>
+        <input type="text" name="einsatznummer" required placeholder="XX/2024"><br>       
+        <label for="einsatzstichwort">Einsatzstichwort:</label>
+        <input type="text" name="einsatzstichwort" id="einsatzstichwort" required placeholder="bsp. FWALD1"><br>
+        <label for="einsatzmeldung">Einsatzmeldung:</label>
+        <input type="text" name="einsatzmeldung" placeholder="bsp. WALDBRAND" required><br>
+        <label for="uhrzeit">Uhrzeit:</label>
+        <input type="time" name="uhrzeit" required><br>
+        <label for="datum">Datum:</label>
+        <input type="date" name="datum" id="datum" required><br>
+        <label for="ort">Ort:</label>
+        <input type="text" name="ort" placeholder="bsp. Barme/Dörverden" required><br>
+        <label for="einsatzbericht">Einsatzbericht:</label>
+        <textarea name="einsatzbericht" placeholder="bsp. Waldbrand von 70qm, schnelles eingreifen weitere ausbreitung verhindert, schnelle kontrolle, keine verletzten" required></textarea><br>
+        <label>Text Mit ChatGPT erstellen?: <input type="checkbox" name="usegpt" checked="checked"></label><br>
+        <label for="fahrzeuge">Fahrzeuge:</label>
+        <select name="fahrzeuge" multiple>
+            {% for fahrzeug in fahrzeuge_list %}
+                <option value="{{ fahrzeug }}">{{ fahrzeug }}</option>
+            {% endfor %}
+        </select><br>
+        <label for="weitere_kraefte">Weitere Kräfte:</label>
+        <select name="weitere_kraefte" multiple>
+            {% for kraft in weitere_kraefte_list %}
+                <option value="{{ kraft }}">{{ kraft }}</option>
+            {% endfor %}
+        </select><br>
+        <button type="submit" id="submit">Text Generieren</button>
+        <br>        
+        <label for="file">Bild hochladen:</label>
+        <input type="file" id="file" name="file"><br>
+        
+        <label for="predefined_image">Oder vordefiniertes Bild auswählen:</label>
+        <select id="predefined_image" name="predefined_image">
+            <option value="">-- Bitte auswählen --</option>
+            {% for image in predefined_images %}
+                <option value="{{ url_for('static', filename='predefined/' + image) }}">{{ image }}</option>
+            {% endfor %}
+        </select><br>
+        <label>Einsatzbanner auf Bild? <input type="checkbox" name="imagealarmbanner" id="imagealarmbanner" checked="checked"></label>
+        <label>Wasserzeichen? <input type="checkbox" name="imagewatermark" id="imagewatermark" checked="checked"></label>
+        <label>Symbolbild? <input type="checkbox" name="symbolicimagetag" id="symbolicimagetag"></label>
+        
+        <div id="canvas-container">
+            <canvas id="canvas" width="1080" height="1080"></canvas>
+        </div>
+        
+        <div id="controls">
+            <button type="button" id="zoomIn">Zoom In</button>
+            <button type="button" id="zoomOut">Zoom Out</button>
+            <button type="button" id="move-left">←</button>
+            <button type="button" id="move-right">→</button>
+            <button type="button" id="move-up">↑</button>
+            <button type="button" id="move-down">↓</button>
+            <button type="button" id="reset">Reset</button>
+        </div>
+        <div>
+            <label for="post-text">Generierter Social Media Post:</label>
+            <textarea id="post-text"></textarea>
+            <button id="copy-button">Text kopieren</button>
+            <button onclick="download_image()">Bild downloaden</button>
+        </div>
+    </form>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let img = new Image();
+        let imgX = 0, imgY = 0;
+        let scale = 1.0;
+        let watermarkImg = new Image();
+        watermarkImg.src = "{{ url_for('static', filename='watermark.png') }}";  // Festes Wasserzeichen
+
+        document.getElementById('file').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                img.src = event.target.result;
+                img.onload = function() {
+                    resizeAndDrawImage();
+                };
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        document.getElementById('predefined_image').addEventListener('change', function(e) {
+            const selectedImage = e.target.value;
+            if (selectedImage) {
+                img.src = selectedImage;
+                img.onload = function() {
+                    resizeAndDrawImage();
+                };
+            }
+        });
+
+        document.getElementById('imagewatermark').addEventListener('change', function() {
+            watermarkImg.src = "{{ url_for('static', filename='watermark.png') }}";
+            drawImage();
+        });
+
+        // Alarmbanner Checkbox ändern
+        document.getElementById('imagealarmbanner').addEventListener('change', function() {
+            drawImage();
+        });           
+        
+        document.getElementById('einsatzstichwort').addEventListener('change', function() {           
+            drawImage();
+        });             
+        
+        document.getElementById('symbolicimagetag').addEventListener('change', function() {           
+            drawImage();
+        });        
+
+        document.getElementById('zoomIn').addEventListener('click', function() {
+            scale += 0.1;
+            drawImage();
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', function() {
+            scale = Math.max(0.1, scale - 0.1);
+            drawImage();
+        });
+
+        document.getElementById('move-left').addEventListener('click', function() {
+            imgX -= 10;
+            drawImage();
+        });
+
+        document.getElementById('move-right').addEventListener('click', function() {
+            imgX += 10;
+            drawImage();
+        });
+
+        document.getElementById('move-up').addEventListener('click', function() {
+            imgY -= 10;
+            drawImage();
+        });
+
+        document.getElementById('move-down').addEventListener('click', function() {
+            imgY += 10;
+            drawImage();
+        });        
+
+        document.getElementById('reset').addEventListener('click', function() {
+            resizeAndDrawImage();
+        });
+
+        document.getElementById('copy-button').addEventListener('click', function() {
+            const textarea = document.getElementById('post-text');
+            textarea.select();
+            document.execCommand('copy');
+            alert('Text kopiert!');
+        });
+
+        function resizeAndDrawImage() {
+            const aspectRatio = img.width / img.height;
+            let newWidth, newHeight;
+
+            if (aspectRatio > 1) { // Querformat
+                newWidth = 1080 * aspectRatio;
+                newHeight = 1080;
+            } else { // Hochformat oder quadratisch
+                newHeight = 1080 / aspectRatio;
+                newWidth = 1080;
+            }
+
+            imgX = (canvas.width - newWidth) / 2;
+            imgY = (canvas.height - newHeight) / 2;
+
+            drawImage(newWidth, newHeight);
+        }
+
+        function drawImage(newWidth = img.width * scale, newHeight = img.height * scale) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, imgX, imgY, newWidth, newHeight);
+
+            // Zeichne das Wasserzeichen
+            if (document.getElementById('imagewatermark').checked) {
+                const watermarkWidth = 455;
+                const watermarkHeight = 115;
+                const watermarkX = canvas.width - watermarkWidth - 25;
+                const watermarkY = canvas.height - watermarkHeight - 25;
+
+                ctx.drawImage(watermarkImg, watermarkX, watermarkY, watermarkWidth, watermarkHeight);
+            }
+            // Zeichne den Alarmbanner, wenn die Checkbox aktiviert ist
+            if (document.getElementById('imagealarmbanner').checked) {
+                ctx.save();
+                ctx.translate(-52, 0);
+                ctx.rotate(Math.PI / -45);
+                ctx.fillStyle = 'rgba(255, 0, 0, 1)';
+                ctx.fillRect(0, 600, 410, 50);
+                ctx.fillStyle = 'white';
+                ctx.font = '600 45px Open Sans';
+                ctx.fillText('EINSATZALARM!', 30, 640);
+                ctx.restore();
+            }
+            // Zeichne das Einsatzstichwort, wenn es eingegeben wurde
+            if (document.getElementById('imagealarmbanner').checked) {
+                ctx.save();
+                ctx.translate(-45, 0);
+                ctx.rotate(Math.PI / -45);
+                ctx.fillStyle = 'rgba(200, 0, 0, 1)';
+                ctx.fillRect(100, 648, 200, 35);
+                ctx.font = '400 30px Open Sans';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = "center";
+                ctx.fillText(document.getElementById('einsatzstichwort').value, 200, 677);  // Zeichne den Text immer, etwas weiter oben
+                ctx.restore();
+            }            
+            // Symbolbild tag
+            if (document.getElementById('symbolicimagetag').checked) {
+                ctx.font = '400 20px Open Sans';
+                ctx.fillStyle = 'lightgrey';
+                ctx.fillText("Symbolbild", 30, 1050);
+            }
+        }
+        document.getElementById('form').addEventListener('submit', function(event) {
+            event.preventDefault();  // Verhindert das automatische Senden des Formulars
+
+            // Canvas als Bild exportieren
+            const imageDataURL = canvas.toDataURL('image/png');
+            
+            // Sammle alle Formulardaten
+            const formData = new FormData(this);
+            formData.append('image_data', imageDataURL);
+
+            // Sende die Daten an das Backend
+            fetch('/social_media', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Zeige den generierten Post im Textfeld an
+                    document.getElementById('post-text').value = data.post_text;
+                } else {
+                    alert('Fehler beim Generieren');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Es ist ein Fehler aufgetreten.');
+            });
+        });
+
+        function download_image(){
+            image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+            var link = document.createElement('a');
+            //var datetime = new Date(document.getElementById('datum').value);
+            var datum = document.getElementById('datum').valueAsDate;
+            //var date = strptime(datum, '%Y-%m-%d');
+            var stichwort = document.getElementById('einsatzstichwort').value;
+            link.download = "einsatzbild_" + stichwort + "_" + datum.toISOString().slice(0, 10) + ".png";
+            link.href = image;
+            link.click();
+        }
+    </script>
+</body>
+</html>

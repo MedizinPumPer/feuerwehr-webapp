@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feuerwehr Webapp</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="header-container">
+        <img class="logo" src="{{ url_for('static', filename='feuerwehr-webapp-logo.png') }}">
+        <div class="text-container">
+            <h1>Feuerwehr Webapp</h1>
+            <h2>Gemeindefeuerwehr Dörverden</h2>
+        </div>
+    </div>
+    <div class="button-container">
+        <!-- Button für Social Media Generator -->
+        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#socialMediaModal">Social Media Generator</button>
+        <div class="modal fade" id="socialMediaModal" tabindex="-1" role="dialog" aria-labelledby="socialMediaModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="socialMediaModalLabel">Social Media Generator</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ url_for('password_check') }}" method="POST">
+                            <input type="hidden" name="page" value="social_media">
+                            <div class="form-group">
+                                <label for="socialMediaPassword">Passwort</label>
+                                <input type="password" class="form-control" id="socialMediaPassword" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-danger">Einloggen</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Button für Raumbuchungssystem -->
+        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#raumBuchungModal">Raumbuchungssystem</button>
+        <div class="modal fade" id="raumBuchungModal" tabindex="-1" role="dialog" aria-labelledby="raumBuchungModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="raumBuchungModalLabel">Raumbuchungssystem</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ url_for('password_check') }}" method="POST">
+                            <input type="hidden" name="page" value="raumbuchung">
+                            <div class="form-group">
+                                <label for="raumBuchungPassword">Passwort</label>
+                                <input type="password" class="form-control" id="raumBuchungPassword" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-danger">Einloggen</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Button für Drohnenbuchungssystem -->
+        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#drohnenBuchungModal">Drohnenbuchungssystem</button>
+        <div class="modal fade" id="drohnenBuchungModal" tabindex="-1" role="dialog" aria-labelledby="drohnenBuchungModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="drohnenBuchungModalLabel">Drohnenbuchungssystem</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ url_for('password_check') }}" method="POST">
+                            <input type="hidden" name="page" value="drohnenbuchung">
+                            <div class="form-group">
+                                <label for="drohnenBuchungPassword">Passwort</label>
+                                <input type="password" class="form-control" id="drohnenBuchungPassword" name="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-danger">Einloggen</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Button für deaktivierte Drohnencheckliste -->
+        <button type="button" class="btn btn-secondary" id="deactivatedBtn" disabled>Drohnencheckliste (folgt)</button>
+    </div>
+    <div class="footer">
+        <div class="coppyright">{{footer_text}}</div>
+    </div>
+
+    <!-- JavaScript für Bootstrap und jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

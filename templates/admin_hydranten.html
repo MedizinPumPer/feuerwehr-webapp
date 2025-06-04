@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hydranten Verwaltung</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+    <div class="header-container">
+        <img class="logo" src="../static/feuerwehr-webapp-logo.png">
+        <div class="text-container">
+            <h1>Hydranten Verwaltung</h1>
+            <h2>Gemeindefeuerwehr Dörverden</h2>
+        </div>
+    </div>
+    <form method="POST">
+        <label>Nummer:</label>
+        <input type="text" name="nummer" required><br>
+        <label>Standortbeschreibung:</label>
+        <input type="text" name="standortbeschreibung" required><br>
+        <label>UTM-Koordinate:</label>
+        <input type="text" name="utm_koordinate"><br>
+        <label>GPS-Daten:</label>
+        <input type="text" name="gps_daten"><br>
+        <button type="submit">Hydrant hinzufügen</button>
+    </form>
+
+    <h2>Hydranten Liste</h2>
+    <ul>
+        {% for hydrant in hydrants %}
+        <li>{{ hydrant.nummer }} - {{ hydrant.standortbeschreibung }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
